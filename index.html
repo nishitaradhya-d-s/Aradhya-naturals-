@@ -119,9 +119,10 @@
   footer .flegal{margin-top:18px;font-size:0.68rem;opacity:0.6;}
 
   /* ---------- ADMIN BAR ---------- */
-  #admin-bar{display:none;position:sticky;top:0;z-index:70;background:var(--ink);color:#fff;padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;font-size:0.82rem;}
+  #admin-bar{display:none;position:sticky;top:0;z-index:70;background:var(--ink);color:#fff;padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;font-size:0.82rem;flex-wrap:wrap;}
   #admin-bar .a-left{display:flex;align-items:center;gap:8px;font-weight:600;}
-  #admin-bar button{background:var(--gold);color:#241b0e;border:none;padding:8px 14px;border-radius:8px;font-weight:700;font-size:0.78rem;}
+  #admin-bar > div:last-child{display:flex;gap:8px;flex-wrap:wrap;}
+  #admin-bar button{background:var(--gold);color:#241b0e;border:none;padding:8px 14px;border-radius:8px;font-weight:700;font-size:0.78rem;white-space:nowrap;}
   #admin-bar button.secondary{background:transparent;border:1px solid #fff;color:#fff;}
   #admin-bar button.danger{background:var(--terracotta-2);color:#fff;}
   #admin-add-cat-row{display:flex;gap:8px;}
@@ -159,6 +160,14 @@
 
   @media(min-width:640px){
     .grid{grid-template-columns:1fr 1fr;}
+  }
+  @media(max-width:380px){
+    .splash-name-kn{font-size:2.05rem;}
+    .splash-name-en{font-size:1.1rem;letter-spacing:1.5px;}
+    .top-header h1{font-size:1.6rem;}
+    .view-menu-btn{padding:13px 28px;font-size:0.95rem;}
+    .item-thumb{width:62px;height:62px;}
+    .price-chip{font-size:0.7rem;padding:3px 7px;}
   }
 </style>
 </head>
@@ -298,6 +307,18 @@
   </div>
 </div>
 
+<!-- CONFIRM MODAL -->
+<div class="modal-overlay" id="confirm-modal">
+  <div class="modal-box" style="max-width:360px;text-align:center;">
+    <h3 style="text-align:center;" id="confirm-title" data-en="Delete this product?" data-kn="ಈ ಉತ್ಪನ್ನವನ್ನು ಅಳಿಸಬೇಕೆ?">Delete this product?</h3>
+    <p style="font-size:0.82rem;color:#8a7d64;" data-en="This cannot be undone." data-kn="ಇದನ್ನು ಹಿಂಪಡೆಯಲಾಗುವುದಿಲ್ಲ.">This cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('confirm-modal')" data-en="Cancel" data-kn="ರದ್ದು">Cancel</button>
+      <button class="btn-save" id="confirm-yes-btn" style="background:var(--terracotta-2);" data-en="Delete" data-kn="ಅಳಿಸಿ">Delete</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -354,6 +375,11 @@ const DEFAULT_DATA = {
     { id:"pd1", cat:"papad", name_en:"Traditional Horsegram Papad", name_kn:"ಹುರುಳಿ ಹಪ್ಪಳ", desc_en:"100 pcs pack", desc_kn:"೧೦೦ ಪೀಸ್ ಪ್ಯಾಕ್", img:"", prices:[{l_en:"100 pcs",l_kn:"100 ಪೀಸ್",p:120}]}
   ]
 };
+
+/* ============ GLOBAL ERROR SAFETY NET ============ */
+window.addEventListener("error", function(e){
+  try{ toast((lang==="kn"?"ದೋಷ: ":"Error: ") + e.message); }catch(_){}
+});
 
 const ADMIN_PASSWORD = "nishitha@2004";
 let DATA = null;
@@ -458,9 +484,10 @@ function renderSections(){
 
     const catName = lang==="kn" ? cat.name_kn : cat.name_en;
     const catNameAlt = lang==="kn" ? cat.name_en : cat.name_kn;
+    const catAdminBtn = isAdmin ? `<button onclick="deleteCategory('${cat.id}')" style="background:none;border:1px solid var(--terracotta-2);color:var(--terracotta-2);border-radius:8px;padding:3px 9px;font-size:0.72rem;margin-left:8px;">🗑 ${lang==='kn'?'ವಿಭಾಗ ಅಳಿಸಿ':'Delete category'}</button>` : "";
 
     html += `<div class="section" id="cat-sec-${cat.id}">
-      <div class="section-head"><span class="icon">${cat.icon}</span><h2>${catName}</h2><span class="kn">${catNameAlt}</span><hr></div>
+      <div class="section-head"><span class="icon">${cat.icon}</span><h2>${catName}</h2><span class="kn">${catNameAlt}</span><hr>${catAdminBtn}</div>
       <div class="grid">`;
 
     items.forEach(it=>{
@@ -682,12 +709,52 @@ function saveItem(){
 }
 
 function deleteItem(id){
-  if(!confirm(lang==="kn" ? "ಈ ಉತ್ಪನ್ನವನ್ನು ಅಳಿಸಬೇಕೆ?" : "Delete this product?")) return;
-  DATA.items = DATA.items.filter(x=>x.id!==id);
-  saveData();
-  renderAll();
-  toast(lang==="kn"?"ಅಳಿಸಲಾಗಿದೆ":"Deleted");
+  showConfirm(
+    lang==="kn" ? "ಈ ಉತ್ಪನ್ನವನ್ನು ಅಳಿಸಬೇಕೆ?" : "Delete this product?",
+    ()=>{
+      DATA.items = DATA.items.filter(x=>x.id!==id);
+      saveData();
+      renderAll();
+      toast(lang==="kn"?"ಅಳಿಸಲಾಗಿದೆ":"Deleted");
+    }
+  );
 }
+
+function deleteCategory(id){
+  const count = DATA.items.filter(x=>x.cat===id).length;
+  const msg = count > 0
+    ? (lang==="kn" ? `ಈ ವಿಭಾಗ ಮತ್ತು ಅದರ ${count} ಉತ್ಪನ್ನಗಳನ್ನು ಅಳಿಸಬೇಕೆ?` : `Delete this category and its ${count} product(s)?`)
+    : (lang==="kn" ? "ಈ ವಿಭಾಗವನ್ನು ಅಳಿಸಬೇಕೆ?" : "Delete this category?");
+  showConfirm(msg, ()=>{
+    DATA.items = DATA.items.filter(x=>x.cat!==id);
+    DATA.categories = DATA.categories.filter(c=>c.id!==id);
+    saveData();
+    if(activeCat===id) activeCat = "all";
+    renderAll();
+    toast(lang==="kn"?"ಅಳಿಸಲಾಗಿದೆ":"Deleted");
+  });
+}
+
+/* ---- Custom confirm modal (avoids relying on browser confirm(), which many in-app/webview browsers block) ---- */
+let _confirmCallback = null;
+function showConfirm(message, onYes){
+  document.getElementById("confirm-title").textContent = message;
+  _confirmCallback = onYes;
+  openModal("confirm-modal");
+}
+document.addEventListener("DOMContentLoaded", function(){
+  const yesBtn = document.getElementById("confirm-yes-btn");
+  if(yesBtn){
+    yesBtn.addEventListener("click", function(){
+      closeModal("confirm-modal");
+      if(typeof _confirmCallback === "function"){
+        try{ _confirmCallback(); }
+        catch(e){ toast("Error: " + e.message); }
+      }
+      _confirmCallback = null;
+    });
+  }
+});
 
 /* ============ INIT ============ */
 document.addEventListener("DOMContentLoaded", function(){
