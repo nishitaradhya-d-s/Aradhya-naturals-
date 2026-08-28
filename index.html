@@ -99,7 +99,9 @@
   .item-name-kn{font-family:var(--font-display);font-size:0.92rem;color:var(--blue-deep);margin-top:1px;}
   .item-desc{font-size:0.74rem;color:#8a7d64;margin-top:4px;}
   .price-rows{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;}
-  .price-chip{background:var(--cream-2);border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:0.76rem;color:var(--ink);font-weight:500;}
+  .price-chip{background:var(--cream-2);border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:0.76rem;color:var(--ink);font-weight:500;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:3px;}
+  .price-chip:active{transform:scale(0.95);}
+  .chip-plus{color:var(--terracotta-2);font-weight:800;font-size:0.9rem;}
   .price-chip b{color:var(--terracotta);font-family:var(--font-display);font-size:0.86rem;margin-left:4px;}
 
   .admin-actions{position:absolute;top:10px;right:10px;display:flex;gap:6px;}
@@ -120,6 +122,8 @@
 
   /* ---------- ADMIN BAR ---------- */
   #admin-bar{display:none;position:sticky;top:0;z-index:70;background:var(--ink);color:#fff;padding:10px 16px;align-items:center;justify-content:space-between;gap:10px;font-size:0.82rem;flex-wrap:wrap;}
+  #storage-warning{display:none;position:sticky;top:0;z-index:71;background:#a33a2a;color:#fff;padding:9px 14px;align-items:center;justify-content:space-between;gap:10px;font-size:0.8rem;flex-wrap:wrap;}
+  #storage-warning button{background:#fff;color:#a33a2a;border:none;border-radius:8px;padding:6px 12px;font-weight:700;font-size:0.78rem;white-space:nowrap;}
   #admin-bar .a-left{display:flex;align-items:center;gap:8px;font-weight:600;}
   #admin-bar > div:last-child{display:flex;gap:8px;flex-wrap:wrap;}
   #admin-bar button{background:var(--gold);color:#241b0e;border:none;padding:8px 14px;border-radius:8px;font-weight:700;font-size:0.78rem;white-space:nowrap;}
@@ -130,6 +134,19 @@
   /* ---------- MODALS ---------- */
   .modal-overlay{position:fixed;inset:0;background:rgba(20,14,6,0.55);z-index:200;display:none;align-items:flex-end;justify-content:center;}
   .modal-overlay.show{display:flex;}
+  #cart-bar{position:fixed;left:14px;right:14px;bottom:14px;z-index:150;background:var(--ink);color:#fff;border-radius:16px;padding:13px 18px;display:none;align-items:center;justify-content:space-between;gap:10px;box-shadow:0 10px 30px rgba(0,0,0,0.35);cursor:pointer;font-weight:600;font-size:0.9rem;}
+  #cart-bar.show{display:flex;}
+  #cart-bar .cb-count{background:var(--gold);color:#241b0e;border-radius:50%;width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;font-size:0.78rem;font-weight:800;margin-right:8px;}
+  #cart-bar .cb-total{font-family:var(--font-display);font-weight:700;}
+  .cart-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);}
+  .cart-row:last-child{border-bottom:none;}
+  .cart-row-info{flex:1;min-width:0;}
+  .cart-row-name{font-weight:600;font-size:0.88rem;}
+  .cart-row-size{font-size:0.76rem;color:#8a7d64;}
+  .cart-qty{display:flex;align-items:center;gap:8px;}
+  .cart-qty button{width:26px;height:26px;border-radius:8px;border:1px solid var(--line);background:var(--cream-2);font-weight:700;}
+  .cart-row-price{font-family:var(--font-display);font-weight:700;color:var(--terracotta);min-width:60px;text-align:right;}
+  .cart-remove{background:none;border:none;color:var(--terracotta-2);font-size:0.9rem;padding:0 2px;}
   .modal-box{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:22px 22px 0 0;padding:22px 20px 30px;}
   @media(min-width:640px){.modal-overlay{align-items:center;}.modal-box{border-radius:22px;}}
   .modal-box h3{font-family:var(--font-display);color:var(--terracotta);margin:0 0 16px;font-size:1.3rem;}
@@ -170,6 +187,9 @@
     .price-chip{font-size:0.7rem;padding:3px 7px;}
   }
 </style>
+<!-- Firebase (used only if configured in the script below; site works without it too) -->
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
 </head>
 <body>
 
@@ -187,11 +207,15 @@
   <div class="splash-name-kn">ಆರಾಧ್ಯ ನ್ಯಾಚುರಲ್ಸ್</div>
   <div class="splash-name-en">Aradhya Naturals</div>
   <div class="splash-tag" data-en="Cold-pressed oils, chakki flours &amp; homemade masalas — straight from Hullahalli, Mysuru" data-kn="ಶುದ್ಧ ಮರದಗಾಣದ ಎಣ್ಣೆ, ಗಿರಣಿ ಹಿಟ್ಟು ಮತ್ತು ಮನೆಮಾಡಿದ ಮಸಾಲೆ — ಹುಲ್ಲಹಳ್ಳಿ, ಮೈಸೂರಿನಿಂದ">Cold-pressed oils, chakki flours &amp; homemade masalas</div>
-  <button class="view-menu-btn" onclick="showApp()" data-en="View Full Menu ↓" data-kn="ಪೂರ್ಣ ಮೆನು ನೋಡಿ ↓">View Full Menu ↓</button>
 </div>
 
 <!-- APP -->
 <div id="app">
+
+  <div id="storage-warning" style="display:none;">
+    <span data-en="⚠️ Changes won't be saved here — you're in a preview." data-kn="⚠️ ಇಲ್ಲಿ ಬದಲಾವಣೆಗಳು ಉಳಿಸಲ್ಪಡುವುದಿಲ್ಲ — ಇದು ಪೂರ್ವವೀಕ್ಷಣೆ.">⚠️ Changes won't be saved here — you're in a preview.</span>
+    <button onclick="openInNewTab()" data-en="Open in browser tab" data-kn="ಬ್ರೌಸರ್ ಟ್ಯಾಬ್‌ನಲ್ಲಿ ತೆರೆಯಿರಿ">Open in browser tab</button>
+  </div>
 
   <div id="admin-bar">
     <div class="a-left">🛠️ <span data-en="Admin mode" data-kn="ಆಡ್ಮಿನ್ ಮೋಡ್">Admin mode</span></div>
@@ -238,6 +262,30 @@
     </div>
     <div class="flegal">FSSAI: 212251310000811 &nbsp;|&nbsp; Udyam: KR-22-0087939</div>
   </footer>
+</div>
+
+<!-- FLOATING CART BAR -->
+<div id="cart-bar" onclick="openCartModal()">
+  <span class="cb-count" id="cart-count">0</span>
+  <span data-en="View Cart" data-kn="ಕಾರ್ಟ್ ನೋಡಿ">View Cart</span>
+  <span class="cb-total" id="cart-total">₹0</span>
+</div>
+
+<!-- CART MODAL -->
+<div class="modal-overlay" id="cart-modal">
+  <div class="modal-box" style="max-width:420px;">
+    <h3 data-en="Your Cart" data-kn="ನಿಮ್ಮ ಕಾರ್ಟ್">Your Cart</h3>
+    <div id="cart-items"></div>
+    <div id="cart-empty-note" class="empty-note" style="display:none;" data-en="Your cart is empty. Tap any price to add it." data-kn="ನಿಮ್ಮ ಕಾರ್ಟ್ ಖಾಲಿ ಇದೆ. ಸೇರಿಸಲು ಬೆಲೆಯನ್ನು ಒತ್ತಿ.">Your cart is empty. Tap any price to add it.</div>
+    <div id="cart-subtotal-row" style="display:flex;justify-content:space-between;font-weight:700;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
+      <span data-en="Total" data-kn="ಒಟ್ಟು">Total</span>
+      <span id="cart-modal-total">₹0</span>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('cart-modal')" data-en="Keep Shopping" data-kn="ಇನ್ನಷ್ಟು ಆರಿಸಿ">Keep Shopping</button>
+      <button class="btn-save" id="cart-wa-btn" style="background:#25D366;" onclick="orderCartOnWhatsApp()">💬 <span data-en="Order on WhatsApp" data-kn="ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ">Order on WhatsApp</span></button>
+    </div>
+  </div>
 </div>
 
 <!-- LOGIN MODAL -->
@@ -383,28 +431,115 @@ window.addEventListener("error", function(e){
 
 const ADMIN_PASSWORD = "nishitha@2004";
 let DATA = null;
-let lang = localStorage.getItem("aradhya_lang") || "en";
-let isAdmin = sessionStorage.getItem("aradhya_admin") === "1";
+let lang = "en";
+try{ lang = localStorage.getItem("aradhya_lang") || "en"; }catch(e){}
+let isAdmin = false;
+try{ isAdmin = sessionStorage.getItem("aradhya_admin") === "1"; }catch(e){}
 let activeCat = "all";
 let uploadedImgData = "";
 
+/* ============ CLOUD SYNC (Firebase) ============ */
+/* Fill in your own Firebase project config below.
+   Get it from: Firebase Console -> Project settings -> General -> Your apps -> SDK setup and config
+   Until you fill this in, the site works exactly as before (each phone saves only to itself). */
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_PROJECT.firebaseapp.com",
+  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
+  projectId: "YOUR_PROJECT",
+  storageBucket: "YOUR_PROJECT.appspot.com",
+  messagingSenderId: "YOUR_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
+let fbEnabled = false;
+let fbRef = null;
+try{
+  if(firebaseConfig.apiKey && firebaseConfig.apiKey !== "YOUR_API_KEY" && typeof firebase !== "undefined"){
+    firebase.initializeApp(firebaseConfig);
+    fbRef = firebase.database().ref("aradhya_data");
+    fbEnabled = true;
+  }
+}catch(e){
+  console.error("Firebase init failed, falling back to local-only storage:", e);
+  fbEnabled = false;
+}
+
 /* ============ PERSISTENCE ============ */
-function loadData(){
-  const raw = localStorage.getItem("aradhya_data");
+function loadDataLocal(){
+  let raw = null;
+  try{ raw = localStorage.getItem("aradhya_data"); }catch(e){}
   if(raw){
     try{ DATA = JSON.parse(raw); return; }catch(e){}
   }
   DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
-  saveData();
+  saveDataLocal();
+}
+function saveDataLocal(){
+  try{
+    localStorage.setItem("aradhya_data", JSON.stringify(DATA));
+  }catch(e){
+    console.error("Could not save to localStorage:", e);
+    toast(lang==="kn" ? "ಎಚ್ಚರಿಕೆ: ಬದಲಾವಣೆ ಉಳಿಸಲಾಗಿಲ್ಲ" : "Warning: change not saved to storage");
+  }
+}
+/* initData loads the menu once and, when Firebase is configured, keeps listening
+   so every open tab/phone updates live whenever the admin saves a change. */
+function initData(cb){
+  if(fbEnabled){
+    fbRef.on("value", function(snapshot){
+      const val = snapshot.val();
+      if(val){
+        DATA = val;
+      } else {
+        DATA = JSON.parse(JSON.stringify(DEFAULT_DATA));
+        fbRef.set(DATA);
+      }
+      saveDataLocal();
+      cb();
+    }, function(err){
+      console.error("Firebase read failed, using local copy instead:", err);
+      loadDataLocal();
+      cb();
+    });
+  } else {
+    loadDataLocal();
+    cb();
+  }
 }
 function saveData(){
-  localStorage.setItem("aradhya_data", JSON.stringify(DATA));
+  if(fbEnabled){
+    try{
+      fbRef.set(DATA);
+    }catch(e){
+      console.error("Firebase save failed:", e);
+      toast(lang==="kn" ? "ಎಚ್ಚರಿಕೆ: ಆನ್‌ಲೈನ್‌ಗೆ ಉಳಿಸಲಾಗಿಲ್ಲ" : "Warning: could not save online");
+    }
+  }
+  saveDataLocal();
+}
+function isStorageWorking(){
+  try{
+    const k = "__aradhya_test__";
+    localStorage.setItem(k, "1");
+    localStorage.removeItem(k);
+    return true;
+  }catch(e){
+    return false;
+  }
+}
+function checkStorageBanner(){
+  const el = document.getElementById("storage-warning");
+  if(!el) return;
+  el.style.display = isStorageWorking() ? "none" : "flex";
+}
+function openInNewTab(){
+  window.open(window.location.href, "_blank");
 }
 
 /* ============ LANG ============ */
 function setLang(l){
   lang = l;
-  localStorage.setItem("aradhya_lang", l);
+  try{ localStorage.setItem("aradhya_lang", l); }catch(e){}
   document.querySelectorAll(".lang-pill button").forEach(b=>{
     b.classList.toggle("active", b.dataset.lang === l);
   });
@@ -428,6 +563,126 @@ function updateWhatsAppLink(){
   const text = "Hi Aradhya Naturals! I would like to place an order. Please share details.\n" +
                "ನಮಸ್ಕಾರ ಆರಾಧ್ಯ ನ್ಯಾಚುರಲ್ಸ್! ನಾನು ಆರ್ಡರ್ ಮಾಡಲು ಬಯಸುತ್ತೇನೆ. ದಯವಿಟ್ಟು ವಿವರಗಳನ್ನು ತಿಳಿಸಿ.";
   link.href = "https://wa.me/919845230084?text=" + encodeURIComponent(text);
+}
+
+/* ============ CART ============ */
+let cart = [];
+try{
+  const rawCart = localStorage.getItem("aradhya_cart");
+  if(rawCart) cart = JSON.parse(rawCart);
+}catch(e){}
+
+function saveCart(){
+  try{ localStorage.setItem("aradhya_cart", JSON.stringify(cart)); }catch(e){}
+}
+function findItem(itemId){
+  return DATA.items.find(it=>it.id===itemId);
+}
+function addToCart(itemId, priceIdx){
+  const it = findItem(itemId);
+  if(!it) return;
+  const pr = it.prices[priceIdx];
+  if(!pr) return;
+  const key = itemId + "_" + priceIdx;
+  const existing = cart.find(c=>c.key===key);
+  if(existing){
+    existing.qty += 1;
+  } else {
+    cart.push({ key, itemId, priceIdx, qty: 1 });
+  }
+  saveCart();
+  renderCartUI();
+  toast(lang==="kn" ? "ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಲಾಗಿದೆ" : "Added to cart");
+}
+function changeCartQty(key, delta){
+  const row = cart.find(c=>c.key===key);
+  if(!row) return;
+  row.qty += delta;
+  if(row.qty <= 0){
+    cart = cart.filter(c=>c.key!==key);
+  }
+  saveCart();
+  renderCartUI();
+}
+function removeFromCart(key){
+  cart = cart.filter(c=>c.key!==key);
+  saveCart();
+  renderCartUI();
+}
+function cartLines(){
+  return cart.map(c=>{
+    const it = findItem(c.itemId);
+    if(!it) return null;
+    const pr = it.prices[c.priceIdx];
+    if(!pr) return null;
+    const name = lang==="kn" ? it.name_kn : it.name_en;
+    const size = lang==="kn" ? pr.l_kn : pr.l_en;
+    return { key:c.key, name, size, unitPrice:pr.p, qty:c.qty, lineTotal:pr.p*c.qty };
+  }).filter(Boolean);
+}
+function cartTotal(){
+  return cartLines().reduce((sum,l)=>sum+l.lineTotal, 0);
+}
+function cartCount(){
+  return cart.reduce((sum,c)=>sum+c.qty, 0);
+}
+function renderCartUI(){
+  const count = cartCount();
+  const total = cartTotal();
+  const bar = document.getElementById("cart-bar");
+  if(bar){
+    bar.classList.toggle("show", count > 0);
+    document.getElementById("cart-count").textContent = count;
+    document.getElementById("cart-total").textContent = money(total);
+  }
+  const itemsWrap = document.getElementById("cart-items");
+  const emptyNote = document.getElementById("cart-empty-note");
+  const subtotalRow = document.getElementById("cart-subtotal-row");
+  const waBtn = document.getElementById("cart-wa-btn");
+  if(!itemsWrap) return;
+  const lines = cartLines();
+  if(lines.length === 0){
+    itemsWrap.innerHTML = "";
+    emptyNote.style.display = "block";
+    subtotalRow.style.display = "none";
+    if(waBtn) waBtn.style.display = "none";
+  } else {
+    emptyNote.style.display = "none";
+    subtotalRow.style.display = "flex";
+    if(waBtn) waBtn.style.display = "block";
+    itemsWrap.innerHTML = lines.map(l=>`
+      <div class="cart-row">
+        <div class="cart-row-info">
+          <div class="cart-row-name">${l.name}</div>
+          <div class="cart-row-size">${l.size} · ${money(l.unitPrice)}</div>
+        </div>
+        <div class="cart-qty">
+          <button type="button" onclick="changeCartQty('${l.key}',-1)">−</button>
+          <span>${l.qty}</span>
+          <button type="button" onclick="changeCartQty('${l.key}',1)">+</button>
+        </div>
+        <div class="cart-row-price">${money(l.lineTotal)}</div>
+        <button type="button" class="cart-remove" onclick="removeFromCart('${l.key}')">🗑</button>
+      </div>
+    `).join("");
+    document.getElementById("cart-modal-total").textContent = money(total);
+  }
+}
+function openCartModal(){
+  renderCartUI();
+  openModal("cart-modal");
+}
+function orderCartOnWhatsApp(){
+  const lines = cartLines();
+  if(lines.length === 0) return;
+  const isKn = lang === "kn";
+  let text = isKn ? "ನಮಸ್ಕಾರ ಆರಾಧ್ಯ ನ್ಯಾಚುರಲ್ಸ್! ನಾನು ಈ ಕೆಳಗಿನವುಗಳನ್ನು ಆರ್ಡರ್ ಮಾಡಲು ಬಯಸುತ್ತೇನೆ:\n\n"
+                    : "Hi Aradhya Naturals! I would like to order:\n\n";
+  lines.forEach((l,i)=>{
+    text += `${i+1}. ${l.name} (${l.size}) x${l.qty} = ${money(l.lineTotal)}\n`;
+  });
+  text += (isKn ? "\nಒಟ್ಟು: " : "\nTotal: ") + money(cartTotal());
+  window.open("https://wa.me/919845230084?text=" + encodeURIComponent(text), "_blank");
 }
 
 /* ============ TOAST ============ */
@@ -497,9 +752,9 @@ function renderSections(){
       const thumb = it.img
         ? `<img class="item-thumb" src="${it.img}" alt="">`
         : `<div class="item-thumb">${cat.icon}</div>`;
-      const chips = it.prices.map(pr=>{
+      const chips = it.prices.map((pr,idx)=>{
         const lbl = lang==="kn" ? pr.l_kn : pr.l_en;
-        return `<span class="price-chip">${lbl}<b>${money(pr.p)}</b></span>`;
+        return `<button type="button" class="price-chip" onclick="addToCart('${it.id}',${idx})">${lbl}<b>${money(pr.p)}</b> <span class="chip-plus">+</span></button>`;
       }).join("");
       const adminBtns = isAdmin ? `<div class="admin-actions">
           <button class="edit-btn" onclick="openItemModal('${it.id}')">✎</button>
@@ -536,9 +791,11 @@ function renderAdminBar(){
 }
 
 function renderAll(){
+  if(!DATA) return;
   renderCatNav();
   renderSections();
   renderAdminBar();
+  renderCartUI();
 }
 
 /* ============ MODALS ============ */
@@ -554,7 +811,7 @@ function tryLogin(){
   const val = document.getElementById("admin-pass-input").value;
   if(val === ADMIN_PASSWORD){
     isAdmin = true;
-    sessionStorage.setItem("aradhya_admin","1");
+    try{ sessionStorage.setItem("aradhya_admin","1"); }catch(e){}
     closeModal("login-modal");
     renderAll();
     toast(lang==="kn" ? "ಆಡ್ಮಿನ್ ಆಗಿ ಲಾಗಿನ್ ಆಗಿದೆ" : "Logged in as admin");
@@ -564,7 +821,7 @@ function tryLogin(){
 }
 function logoutAdmin(){
   isAdmin = false;
-  sessionStorage.removeItem("aradhya_admin");
+  try{ sessionStorage.removeItem("aradhya_admin"); }catch(e){}
   renderAll();
   toast(lang==="kn" ? "ಲಾಗ್ ಔಟ್ ಆಗಿದೆ" : "Logged out");
 }
@@ -758,8 +1015,6 @@ document.addEventListener("DOMContentLoaded", function(){
 
 /* ============ INIT ============ */
 document.addEventListener("DOMContentLoaded", function(){
-  loadData();
-
   document.querySelectorAll(".lang-pill").forEach(pill=>{
     pill.querySelectorAll("button").forEach(btn=>{
       btn.addEventListener("click", ()=> setLang(btn.dataset.lang));
@@ -767,7 +1022,12 @@ document.addEventListener("DOMContentLoaded", function(){
   });
 
   setLang(lang);
-  renderAll();
+  showApp();
+  checkStorageBanner();
+
+  initData(function(){
+    renderAll();
+  });
 });
 
 </script>
