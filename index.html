@@ -29,7 +29,7 @@
   html{scroll-behavior:smooth;}
   body{margin:0;background:var(--cream);color:var(--ink);font-family:var(--font-body);}
   img{max-width:100%;display:block;}
-  button{font-family:inherit;cursor:pointer;}
+  button{font-family:inherit;cursor:pointer;touch-action:manipulation;}
   input,select,textarea{font-family:inherit;}
 
   /* ---------- SPLASH ---------- */
@@ -73,6 +73,9 @@
   .top-header .tag{color:#f0e6d0;font-size:0.85rem;margin-top:8px;}
 
   .ribbon{background:linear-gradient(90deg,var(--terracotta),var(--terracotta-2),var(--gold));color:#fff;text-align:center;padding:10px 14px;font-size:0.85rem;font-weight:600;letter-spacing:0.3px;}
+  #order-hint{display:none;background:#fff6e0;border-bottom:1px solid var(--line);color:#6b5f47;font-size:0.8rem;padding:9px 14px;align-items:center;justify-content:space-between;gap:10px;}
+  #order-hint.show{display:flex;}
+  #order-hint button{background:none;border:none;color:#6b5f47;font-size:0.9rem;padding:0 4px;}
 
   .search-wrap{max-width:560px;margin:16px auto 0;padding:0 16px;}
   .search-box{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:30px;padding:11px 18px;box-shadow:var(--shadow);}
@@ -99,9 +102,9 @@
   .item-name-kn{font-family:var(--font-display);font-size:0.92rem;color:var(--blue-deep);margin-top:1px;}
   .item-desc{font-size:0.74rem;color:#8a7d64;margin-top:4px;}
   .price-rows{margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;}
-  .price-chip{background:var(--cream-2);border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:0.76rem;color:var(--ink);font-weight:500;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:3px;}
+  .price-chip{background:var(--cream-2);border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:0.76rem;color:var(--ink);font-weight:500;cursor:pointer;font-family:inherit;display:inline-flex;align-items:center;gap:6px;}
   .price-chip:active{transform:scale(0.95);}
-  .chip-plus{color:var(--terracotta-2);font-weight:800;font-size:0.9rem;}
+  .chip-plus{background:#1f9d55;color:#fff;font-weight:800;font-size:0.74rem;padding:4px 9px;border-radius:20px;letter-spacing:0.2px;box-shadow:0 2px 6px rgba(31,157,85,0.4);}
   .price-chip b{color:var(--terracotta);font-family:var(--font-display);font-size:0.86rem;margin-left:4px;}
 
   .admin-actions{position:absolute;top:10px;right:10px;display:flex;gap:6px;}
@@ -190,6 +193,7 @@
 <!-- Firebase (used only if configured in the script below; site works without it too) -->
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js"></script>
 </head>
 <body>
 
@@ -242,6 +246,11 @@
 
   <div class="ribbon" data-en="🌿 100% Wood-Pressed Oils &amp; Stone-Ground Flours — Made Fresh to Order 🌾" data-kn="🌿 100% ಮರದಗಾಣದ ಎಣ್ಣೆ ಮತ್ತು ಕಲ್ಲಿನ ಗಿರಣಿ ಹಿಟ್ಟು — ಆರ್ಡರ್ ಮೇಲೆ ತಾಜಾ ತಯಾರಿ 🌾">🌿 100% Wood-Pressed Oils &amp; Stone-Ground Flours 🌾</div>
 
+  <div id="order-hint">
+    <span data-en="🛒 Tap + Add on any size to add it to your cart, then order it on WhatsApp." data-kn="🛒 ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಲು ಯಾವುದೇ ಗಾತ್ರದ ಮೇಲೆ + ಸೇರಿಸಿ ಒತ್ತಿ, ನಂತರ ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ.">🛒 Tap + Add on any size to add it to your cart, then order it on WhatsApp.</span>
+    <button type="button" onclick="dismissOrderHint()" aria-label="Dismiss">✕</button>
+  </div>
+
   <div class="search-wrap">
     <div class="search-box">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -258,7 +267,7 @@
     <div class="faddr" data-en="Rajkumar Road, near Hero Showroom, Hullahalli, Nanjangud Tq, Mysuru – 571314" data-kn="ರಾಜ್‌ಕುಮಾರ್ ರಸ್ತೆ, ಹೀರೋ ಶೋರೂಂ ಹತ್ತಿರ, ಹುಲ್ಲಹಳ್ಳಿ, ನಂಜನಗೂಡು ತಾ, ಮೈಸೂರು - 571314">Rajkumar Road, near Hero Showroom, Hullahalli, Nanjangud Tq, Mysuru – 571314</div>
     <div class="fcontact">
       <a class="wa-btn" id="wa-order-link" href="#" target="_blank" rel="noopener">💬 <span data-en="Order on WhatsApp" data-kn="ವಾಟ್ಸಾಪ್‌ನಲ್ಲಿ ಆರ್ಡರ್ ಮಾಡಿ">Order on WhatsApp</span></a>
-      <div style="margin-top:10px;font-size:0.85rem;">📞 9845230084 </div>
+      <div style="margin-top:10px;font-size:0.85rem;">📞 9845230084</div>
     </div>
     <div class="flegal">FSSAI: 212251310000811 &nbsp;|&nbsp; Udyam: KR-22-0087939</div>
   </footer>
@@ -267,7 +276,7 @@
 <!-- FLOATING CART BAR -->
 <div id="cart-bar" onclick="openCartModal()">
   <span class="cb-count" id="cart-count">0</span>
-  <span data-en="View Cart" data-kn="ಕಾರ್ಟ್ ನೋಡಿ">View Cart</span>
+  <span data-en="View Cart →" data-kn="ಕಾರ್ಟ್ ನೋಡಿ →">View Cart →</span>
   <span class="cb-total" id="cart-total">₹0</span>
 </div>
 
@@ -280,6 +289,10 @@
     <div id="cart-subtotal-row" style="display:flex;justify-content:space-between;font-weight:700;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);">
       <span data-en="Total" data-kn="ಒಟ್ಟು">Total</span>
       <span id="cart-modal-total">₹0</span>
+    </div>
+    <div class="field" id="cart-address-field" style="margin-top:14px;">
+      <label data-en="Delivery Address (optional)" data-kn="ವಿಳಾಸ (ಐಚ್ಛಿಕ)">Delivery Address (optional)</label>
+      <textarea id="cart-address" rows="2" data-en-ph="House no, street, village/town, pincode" data-kn-ph="ಮನೆ ಸಂಖ್ಯೆ, ಬೀದಿ, ಗ್ರಾಮ/ಪಟ್ಟಣ, ಪಿನ್‌ಕೋಡ್" placeholder="House no, street, village/town, pincode" style="width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:0.9rem;background:var(--cream);font-family:inherit;resize:vertical;"></textarea>
     </div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('cart-modal')" data-en="Keep Shopping" data-kn="ಇನ್ನಷ್ಟು ಆರಿಸಿ">Keep Shopping</button>
@@ -310,8 +323,8 @@
     <div class="field"><label data-en="Name (English)" data-kn="ಹೆಸರು (ಇಂಗ್ಲಿಷ್)">Name (English)</label><input type="text" id="cat-name-en" placeholder="e.g. Spice Powders"></div>
     <div class="field"><label data-en="Name (Kannada)" data-kn="ಹೆಸರು (ಕನ್ನಡ)">Name (Kannada)</label><input type="text" id="cat-name-kn" placeholder="ಉದಾ. ಮಸಾಲೆ ಪುಡಿಗಳು"></div>
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('cat-modal')" data-en="Cancel" data-kn="ರದ್ದು">Cancel</button>
-      <button class="btn-save" onclick="saveCategory()" data-en="Save Category" data-kn="ಉಳಿಸಿ">Save Category</button>
+      <button class="btn-cancel" onpointerdown="document.activeElement.blur()" onclick="closeModal('cat-modal')" data-en="Cancel" data-kn="ರದ್ದು">Cancel</button>
+      <button class="btn-save" onpointerdown="document.activeElement.blur()" onclick="saveCategory()" data-en="Save Category" data-kn="ಉಳಿಸಿ">Save Category</button>
     </div>
   </div>
 </div>
@@ -349,8 +362,8 @@
     <button type="button" class="btn-add-row" onclick="addPriceRow()">+ <span data-en="Add size / price" data-kn="ಗಾತ್ರ / ಬೆಲೆ ಸೇರಿಸಿ">Add size / price</span></button>
 
     <div class="modal-actions">
-      <button class="btn-cancel" onclick="closeModal('item-modal')" data-en="Cancel" data-kn="ರದ್ದು">Cancel</button>
-      <button class="btn-save" onclick="saveItem()" data-en="Save Product" data-kn="ಉಳಿಸಿ">Save Product</button>
+      <button class="btn-cancel" onpointerdown="document.activeElement.blur()" onclick="closeModal('item-modal')" data-en="Cancel" data-kn="ರದ್ದು">Cancel</button>
+      <button class="btn-save" onpointerdown="document.activeElement.blur()" onclick="saveItem()" data-en="Save Product" data-kn="ಉಳಿಸಿ">Save Product</button>
     </div>
   </div>
 </div>
@@ -452,6 +465,13 @@ const firebaseConfig = {
   appId: "1:643671925866:web:3e74f447c9cde948925613",
   measurementId: "G-3VSWRGCVRD"
 };
+/* This fixed email is only used to authenticate the admin device to Firebase so it's
+   allowed to WRITE (see security rules note below). It is not a real inbox and nobody
+   needs to log into it anywhere else. You must create this exact user once in:
+   Firebase Console -> Authentication -> Sign-in method -> enable Email/Password,
+   then Authentication -> Users -> Add user, using this email and the SAME password
+   as ADMIN_PASSWORD above. */
+const FIREBASE_ADMIN_EMAIL = "admin@aradhya-naturals.app";
 let fbEnabled = false;
 let fbRef = null;
 try{
@@ -510,7 +530,13 @@ function initData(cb){
 function saveData(){
   if(fbEnabled){
     try{
-      fbRef.set(DATA);
+      const result = fbRef.set(DATA);
+      if(result && typeof result.catch === "function"){
+        result.catch(err=>{
+          console.error("Firebase save failed:", err);
+          toast(lang==="kn" ? "ಎಚ್ಚರಿಕೆ: ಆನ್‌ಲೈನ್‌ಗೆ ಉಳಿಸಲಾಗಿಲ್ಲ (ಇತರ ಫೋನ್‌ಗಳಿಗೆ ಕಾಣಿಸದಿರಬಹುದು)" : "Warning: could not save online — other phones may not see this change");
+        });
+      }
     }catch(e){
       console.error("Firebase save failed:", e);
       toast(lang==="kn" ? "ಎಚ್ಚರಿಕೆ: ಆನ್‌ಲೈನ್‌ಗೆ ಉಳಿಸಲಾಗಿಲ್ಲ" : "Warning: could not save online");
@@ -532,6 +558,18 @@ function checkStorageBanner(){
   const el = document.getElementById("storage-warning");
   if(!el) return;
   el.style.display = isStorageWorking() ? "none" : "flex";
+}
+function checkOrderHint(){
+  const el = document.getElementById("order-hint");
+  if(!el) return;
+  let seen = false;
+  try{ seen = localStorage.getItem("aradhya_hint_seen") === "1"; }catch(e){}
+  if(!seen) el.classList.add("show");
+}
+function dismissOrderHint(){
+  const el = document.getElementById("order-hint");
+  if(el) el.classList.remove("show");
+  try{ localStorage.setItem("aradhya_hint_seen", "1"); }catch(e){}
 }
 function openInNewTab(){
   window.open(window.location.href, "_blank");
@@ -593,6 +631,7 @@ function addToCart(itemId, priceIdx){
   }
   saveCart();
   renderCartUI();
+  dismissOrderHint();
   toast(lang==="kn" ? "ಕಾರ್ಟ್‌ಗೆ ಸೇರಿಸಲಾಗಿದೆ" : "Added to cart");
 }
 function changeCartQty(key, delta){
@@ -640,6 +679,7 @@ function renderCartUI(){
   const emptyNote = document.getElementById("cart-empty-note");
   const subtotalRow = document.getElementById("cart-subtotal-row");
   const waBtn = document.getElementById("cart-wa-btn");
+  const addressField = document.getElementById("cart-address-field");
   if(!itemsWrap) return;
   const lines = cartLines();
   if(lines.length === 0){
@@ -647,10 +687,12 @@ function renderCartUI(){
     emptyNote.style.display = "block";
     subtotalRow.style.display = "none";
     if(waBtn) waBtn.style.display = "none";
+    if(addressField) addressField.style.display = "none";
   } else {
     emptyNote.style.display = "none";
     subtotalRow.style.display = "flex";
     if(waBtn) waBtn.style.display = "block";
+    if(addressField) addressField.style.display = "block";
     itemsWrap.innerHTML = lines.map(l=>`
       <div class="cart-row">
         <div class="cart-row-info">
@@ -677,13 +719,25 @@ function orderCartOnWhatsApp(){
   const lines = cartLines();
   if(lines.length === 0) return;
   const isKn = lang === "kn";
+  const addressInput = document.getElementById("cart-address");
+  const address = addressInput ? addressInput.value.trim() : "";
   let text = isKn ? "ನಮಸ್ಕಾರ ಆರಾಧ್ಯ ನ್ಯಾಚುರಲ್ಸ್! ನಾನು ಈ ಕೆಳಗಿನವುಗಳನ್ನು ಆರ್ಡರ್ ಮಾಡಲು ಬಯಸುತ್ತೇನೆ:\n\n"
                     : "Hi Aradhya Naturals! I would like to order:\n\n";
   lines.forEach((l,i)=>{
     text += `${i+1}. ${l.name} (${l.size}) x${l.qty} = ${money(l.lineTotal)}\n`;
   });
   text += (isKn ? "\nಒಟ್ಟು: " : "\nTotal: ") + money(cartTotal());
+  if(address){
+    text += (isKn ? "\n\nವಿಳಾಸ: " : "\n\nDelivery address: ") + address;
+  }
   window.open("https://wa.me/919845230084?text=" + encodeURIComponent(text), "_blank");
+
+  // Order placed — empty the cart
+  cart = [];
+  saveCart();
+  if(addressInput) addressInput.value = "";
+  renderCartUI();
+  closeModal("cart-modal");
 }
 
 /* ============ TOAST ============ */
@@ -755,7 +809,8 @@ function renderSections(){
         : `<div class="item-thumb">${cat.icon}</div>`;
       const chips = it.prices.map((pr,idx)=>{
         const lbl = lang==="kn" ? pr.l_kn : pr.l_en;
-        return `<button type="button" class="price-chip" onclick="addToCart('${it.id}',${idx})">${lbl}<b>${money(pr.p)}</b> <span class="chip-plus">+</span></button>`;
+        const addLbl = lang==="kn" ? "+ ಸೇರಿಸಿ" : "+ Add";
+        return `<button type="button" class="price-chip" onclick="addToCart('${it.id}',${idx})">${lbl}<b>${money(pr.p)}</b> <span class="chip-plus">${addLbl}</span></button>`;
       }).join("");
       const adminBtns = isAdmin ? `<div class="admin-actions">
           <button class="edit-btn" onclick="openItemModal('${it.id}')">✎</button>
@@ -816,6 +871,13 @@ function tryLogin(){
     closeModal("login-modal");
     renderAll();
     toast(lang==="kn" ? "ಆಡ್ಮಿನ್ ಆಗಿ ಲಾಗಿನ್ ಆಗಿದೆ" : "Logged in as admin");
+    if(fbEnabled && typeof firebase.auth === "function"){
+      firebase.auth().signInWithEmailAndPassword(FIREBASE_ADMIN_EMAIL, val)
+        .catch(err=>{
+          console.error("Firebase auth sign-in failed:", err);
+          toast(lang==="kn" ? "ಎಚ್ಚರಿಕೆ: ಆನ್‌ಲೈನ್ ಲಾಗಿನ್ ವಿಫಲವಾಗಿದೆ, ಬದಲಾವಣೆಗಳು ಎಲ್ಲರಿಗೂ ಕಾಣಿಸದಿರಬಹುದು" : "Warning: cloud login failed — changes may not sync to other phones until this is fixed");
+        });
+    }
   } else {
     document.getElementById("login-error").textContent = lang==="kn" ? "ತಪ್ಪು ಪಾಸ್‌ವರ್ಡ್" : "Incorrect password";
   }
@@ -823,6 +885,9 @@ function tryLogin(){
 function logoutAdmin(){
   isAdmin = false;
   try{ sessionStorage.removeItem("aradhya_admin"); }catch(e){}
+  if(fbEnabled && typeof firebase.auth === "function"){
+    try{ firebase.auth().signOut(); }catch(e){}
+  }
   renderAll();
   toast(lang==="kn" ? "ಲಾಗ್ ಔಟ್ ಆಗಿದೆ" : "Logged out");
 }
@@ -1025,6 +1090,7 @@ document.addEventListener("DOMContentLoaded", function(){
   setLang(lang);
   showApp();
   checkStorageBanner();
+  checkOrderHint();
 
   initData(function(){
     renderAll();
